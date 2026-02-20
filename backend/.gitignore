@@ -1,0 +1,4 @@
+.env
+*.db
+report.pdf
+__pycache__/

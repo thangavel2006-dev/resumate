@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home | ResuMate AI</title>
+    <link rel="icon" type="image/png" href="image/favicon.png.jpeg">
+    
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="index.css">
+    <style>
+        /* Modern UI Tweaks */
+        :root { --primary: #2563eb; --dark: #0f172a; }
+        body { font-family: 'Inter', sans-serif; color: var(--dark); line-height: 1.6; }
+        .navbar { display: flex; justify-content: space-between; padding: 1.5rem 5%; align-items: center; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
+        .hero { display: flex; align-items: center; padding: 5rem 10%; gap: 4rem; min-height: 80vh; }
+        .hero-left h1 { font-size: 3.5rem; line-height: 1.1; margin-bottom: 1.5rem; }
+        .hero-left span { color: var(--primary); }
+        .badge { background: #dbeafe; color: var(--primary); padding: 5px 15px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; margin-bottom: 1rem; display: inline-block; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 3rem; }
+        .stat-card { border-left: 3px solid var(--primary); padding-left: 15px; }
+        .stat-card h3 { margin: 0; font-size: 1.5rem; }
+        .stat-card p { margin: 0; color: #64748b; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<header class="navbar">
+    <h2 class="logo" style="cursor:pointer" onclick="window.location.href='index.html'">ResuMate</h2>
+    <div class="nav-buttons" id="nav-auth-group">
+        <a href="login.html" class="nav-btn">Login</a>
+        <a href="register.html" class="nav-btn primary">Get Started</a>
+    </div>
+</header>
+
+<main class="hero">
+    <div class="hero-left">
+        <div class="badge">New: AI Keyword Suggestions 2.0</div>
+        <h1>Stop getting <span>ignored</span> by recruiters.</h1>
+        <p class="subtitle">
+            Most resumes are rejected by robots before a human ever sees them. ResuMate uses AI to optimize your resume for Applicant Tracking Systems (ATS).
+        </p>
+
+        <div class="cta-group">
+            <a href="register.html" id="main-cta" class="btn primary">Start Free Scan</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><h3>95%</h3><p>ATS Accuracy</p></div>
+            <div class="stat-card"><h3>3x</h3><p>Interview Rate</p></div>
+            <div class="stat-card"><h3>0$</h3><p>Always Free</p></div>
+        </div>
+    </div>
+
+    <div class="hero-right">
+        <div class="scanner-box">
+            <div class="scan-line"></div>
+            <p>Analyze your Skills...</p>
+        </div>
+        <div class="glow"></div>
+    </div>
+</main>
+
+<script src="script.js"></script>
+<script>
+    // Update navigation based on login status
+    const user = JSON.parse(localStorage.getItem('user'));
+    const navGroup = document.getElementById('nav-auth-group');
+    const mainCta = document.getElementById('main-cta');
+
+    if (user) {
+        navGroup.innerHTML = `
+            <a href="dashboard.html" class="nav-btn">Dashboard</a>
+            <button onclick="logout()" class="nav-btn" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:600;">Logout</button>
+        `;
+        mainCta.innerText = "Go to Dashboard";
+        mainCta.href = "dashboard.html";
+    }
+</script>
+</body>
+</html>

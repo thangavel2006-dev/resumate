@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | ResuMate AI</title>
+    <link rel="icon" type="image/png" href="image/favicon.png.jpeg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --danger: #ef4444; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; }
+        header { width: 100%; padding: 1rem 5%; background: var(--card); border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; position: sticky; top: 0; z-index: 100; }
+        .user-section { display: flex; align-items: center; gap: 20px; }
+        .logout-btn { background: #fee2e2; color: var(--danger); border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .logout-btn:hover { background: var(--danger); color: white; }
+        .main-container { max-width: 1100px; width: 95%; margin: 2rem 0; display: grid; grid-template-columns: 1fr 350px; gap: 2rem; }
+        .card { background: var(--card); padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        input, textarea { width: 100%; padding: 0.75rem; margin: 0.5rem 0 1rem 0; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
+        button.primary-btn { width: 100%; padding: 0.8rem; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: 600; cursor: pointer; }
+        .score-circle { width: 100px; height: 100px; border-radius: 50%; border: 8px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; margin: 1rem auto; transition: 0.5s; }
+        .tag { display: inline-block; padding: 0.3rem 0.7rem; border-radius: 20px; font-size: 0.85rem; margin: 4px; border: 1px solid #e2e8f0; font-weight: 500; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="font-weight: 800; color: var(--primary); font-size: 1.5rem; cursor: pointer;" onclick="window.location.href='index.html'">
+        <i class="fa-solid fa-rocket"></i> ResuMate AI
+    </div>
+    <div class="user-section">
+        <div id="user-display" style="font-weight: 600; color: #475569;"><i class="fa-solid fa-user-circle"></i> Welcome</div>
+        <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-power-off"></i> Logout</button>
+    </div>
+</header>
+
+<div class="main-container">
+    <div class="left-col">
+        <div class="card">
+            <h3><i class="fa-solid fa-magnifying-glass-chart"></i> Analyze Resume</h3>
+            <input type="text" id="job_title" placeholder="Target Job Title (e.g. Python Developer)">
+            <textarea id="description" rows="6" placeholder="Paste the full Job Description here..."></textarea>
+            <label style="font-weight: 600; font-size: 0.9rem;"><i class="fa-solid fa-file-pdf"></i> Upload Resume (PDF only)</label>
+            <input type="file" id="resume" accept=".pdf">
+            <button class="primary-btn" onclick="startAnalysis()">Run ATS Scan 🚀</button>
+            <div id="loading" class="hidden" style="margin-top: 15px; text-align: center; color: var(--primary); font-weight: 600;">
+                <i class="fa-solid fa-spinner fa-spin"></i> Processing PDF...
+            </div>
+        </div>
+
+        <div id="result-area" class="card hidden" style="margin-top: 2rem;">
+            <div class="score-circle" id="score-val">0%</div>
+            <h4 style="text-align:center; margin-bottom: 5px;">ATS Match Score</h4>
+            <div id="suggestions" style="color: #475569; font-size: 0.95rem; margin: 1rem 0; text-align: center; font-style: italic; background: #f1f5f9; padding: 10px; border-radius: 8px;"></div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 1rem;">
+                <div><strong><i class="fa-solid fa-check-circle" style="color:#10b981"></i> Matched:</strong><div id="matched-tags" style="margin-top: 10px;"></div></div>
+                <div><strong><i class="fa-solid fa-times-circle" style="color:#ef4444"></i> Missing:</strong><div id="missing-tags" style="margin-top: 10px;"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <div class="card">
+            <h4><i class="fa-solid fa-clock-rotate-left"></i> Scan History</h4>
+            <div id="history-list"></div>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+    const userData = localStorage.getItem('user');
+    if (!userData) window.location.href = 'login.html';
+
+    const user = JSON.parse(userData);
+    document.getElementById('user-display').innerHTML = `<i class="fa-solid fa-user-circle"></i> Welcome, ${user.name || user.id}`;
+
+    async function startAnalysis() {
+        const file = document.getElementById('resume').files[0];
+        const desc = document.getElementById('description').value;
+        const title = document.getElementById('job_title').value;
+
+        if(!file || !desc) return alert("Please provide both a resume file and a job description.");
+
+        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('result-area').classList.add('hidden');
+
+        const fd = new FormData();
+        fd.append('user_id', user.id);
+        fd.append('resume', file);
+        fd.append('description', desc);
+        fd.append('job_title', title || "Untitled Role");
+
+        try {
+            const res = await fetch(`http://127.0.0.1:5000/analyze`, { method: 'POST', body: fd });
+            const data = await res.json();
+            if(res.ok) {
+                showResults(data);
+                loadHistory();
+            } else { alert(data.message); }
+        } catch (e) { alert("Server Error: Is app.py running?"); }
+        finally { document.getElementById('loading').classList.add('hidden'); }
+    }
+
+    function showResults(data) {
+        document.getElementById('result-area').classList.remove('hidden');
+        const scoreEl = document.getElementById('score-val');
+        scoreEl.innerText = data.ats_score + "%";
+        scoreEl.style.borderColor = data.ats_score > 70 ? '#10b981' : (data.ats_score > 40 ? '#f59e0b' : '#ef4444');
+        document.getElementById('suggestions').innerText = data.suggestions[0];
+        document.getElementById('matched-tags').innerHTML = data.matched.map(t => `<span class="tag" style="background:#f0fdf4; color:#166534">${t}</span>`).join('');
+        document.getElementById('missing-tags').innerHTML = data.missing.map(t => `<span class="tag" style="background:#fef2f2; color:#991b1b">${t}</span>`).join('');
+    }
+
+    async function loadHistory() {
+        try {
+            const res = await fetch(`http://127.0.0.1:5000/history/${user.id}`);
+            const data = await res.json();
+            document.getElementById('history-list').innerHTML = data.map(item => `
+                <div style="padding: 12px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.9rem;">${item.job_title}</span>
+                    <strong style="color: var(--primary);">${item.score}%</strong>
+                </div>
+            `).join('') || "No history found.";
+        } catch (e) { console.error(e); }
+    }
+    loadHistory();
+</script>
+</body>
+</html>
